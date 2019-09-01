@@ -11,45 +11,11 @@ defmodule VamNum do
 
                     start = Enum.sort(start_digit)
                     product = Enum.sort(product_digit)
-                    # start = Enum.at(start_digit, 0) * 100000 + Enum.at(start_digit, 1) * 10000 + Enum.at(start_digit, 2) * 1000 + Enum.at(start_digit, 3) * 100 + Enum.at(start_digit, 4) * 10 + Enum.at(start_digit, 5)
-                    # IO.puts(start)
-                    # IO.puts(target)
-                    # product = Enum.at(product_digit, 0) * 100000 + Enum.at(product_digit, 1) * 10000 + Enum.at(product_digit, 2) * 1000 + Enum.at(product_digit, 3) * 100 + Enum.at(product_digit, 4) * 10 + Enum.at(product_digit, 5)
-                    # IO.puts(product)
-                    # IO.puts("  ")
                     if Enum.at(product, 0) == Enum.at(start, 0) && Enum.at(product, 1) == Enum.at(start, 1) && Enum.at(product, 2) == Enum.at(start, 2) && Enum.at(product, 3) == Enum.at(start, 3) && Enum.at(product, 4) == Enum.at(start, 4) && Enum.at(product, 5) == Enum.at(start, 5)do
                         IO.puts(m)
                         IO.puts(n)
                         IO.puts(target)
                     end
-
-                    # touchSix(product_digit, start_digit, target, m, n, 0, 0, 6)
-                    
-                    
-                    # count = 0
-                    # for i <- 0..5, do:
-                    # (
-                    #     for j <- 0..5, do:
-                    #     (
-                    #         if Enum.at(product_digit, i) == Enum.at(start_digit, j) do
-                    #             count = count + 1
-                    #             IO.puts(count)
-                    #             if count == 6 do
-                    #                 IO.puts(target)
-                    #             end
-                    #         end
-                    #     )
-                    # )
-
-
-                    # Enum.sort(start_digit)
-                    # Enum.sort(product_digit)
-                    # IO.puts(target)
-                    # if Enum.at(start_digit, 0) == Enum.at(product_digit, 0) && Enum.at(start_digit, 1) == Enum.at(product_digit, 1) && Enum.at(start_digit, 2) == Enum.at(product_digit, 2) && Enum.at(start_digit,3) == Enum.at(product_digit, 3) && Enum.at(start_digit, 4) == Enum.at(product_digit, 4) && Enum.at(start_digit, 5) == Enum.at(product_digit, 5) do
-                    #     IO.puts(m)
-                    #     IO.puts(n)
-                    #     IO.puts(target)
-                    # end
                 end
             )
         )
