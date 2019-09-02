@@ -5,9 +5,9 @@ core_count = System.schedulers_online
 start_num = String.to_integer(Enum.at(System.argv, 0))
 end_num = String.to_integer(Enum.at(System.argv, 1))
 
-chunk = div(end_num - start_num, core_count - 1)
+chunk = div(end_num - start_num, core_count)
 
-{real_time, {cpu_time, result}} = :timer.tc(fn -> Boss.start(start_num, end_num, core_count - 1, chunk) end)
+{real_time, {cpu_time, result}} = :timer.tc(fn -> Boss.start(start_num, end_num, core_count, chunk) end)
 
 for {k, v} <- result do
     IO.write(k)
