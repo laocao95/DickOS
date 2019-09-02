@@ -1,19 +1,19 @@
 # IO.inspect System.argv
 core_count = System.schedulers_online
 
-# IO.puts(core_count)
 
-startNum = String.to_integer(Enum.at(System.argv, 0))
-endNum = String.to_integer(Enum.at(System.argv, 1))
+start_num = String.to_integer(Enum.at(System.argv, 0))
+end_num = String.to_integer(Enum.at(System.argv, 1))
 
-chunk = div(endNum - startNum, core_count)
-# IO.puts(IEx.Helpers.i(startNum))
-# IO.puts(IEx.Helpers.i(endNum))
-for n <- 0..core_count-1, do:
-(
-    if n == core_count-1 do
-        VamNum.vampire_num({startNum + n * chunk, endNum})
-    else
-        VamNum.vampire_num({startNum + n * chunk, startNum + (n + 1) * chunk})
-    end
-)
+chunk = div(end_num - start_num, core_count - 1)
+
+{real_time, {cpu_time, result}} = :timer.tc(fn -> Boss.start(start_num, end_num, core_count - 1, chunk) end)
+
+for {k, v} <- result do
+    IO.write(k)
+    for fangs <- v do IO.write(" " <> fangs) end
+    IO.write("\n")
+end
+IO.puts("cpu time " <> Integer.to_string(cpu_time))
+IO.puts("real time " <> Integer.to_string(real_time))
+IO.puts("ratio " <> ( (cpu_time / real_time) |> Float.floor(3) |> Float.to_string()))

@@ -1,5 +1,5 @@
 defmodule VamNum do
-    def vampireNum({low, high}) do
+    def vampireNum(boss, low, high) do
         for m <- 100..999, do:
         (
             for n <- m..999, do:
@@ -12,9 +12,7 @@ defmodule VamNum do
                     start = Enum.sort(start_digit)
                     product = Enum.sort(product_digit)
                     if Enum.at(product, 0) == Enum.at(start, 0) && Enum.at(product, 1) == Enum.at(start, 1) && Enum.at(product, 2) == Enum.at(start, 2) && Enum.at(product, 3) == Enum.at(start, 3) && Enum.at(product, 4) == Enum.at(start, 4) && Enum.at(product, 5) == Enum.at(start, 5)do
-                        IO.puts(m)
-                        IO.puts(n)
-                        IO.puts(target)
+                        send boss, {:found, target, m, n}
                     end
                 end
             )
