@@ -1,18 +1,18 @@
 defmodule VamNum do
     def factor_pairs(n) do
-        first = trunc(n / :math.pow(10, div(length(to_char_list(n)), 2)))
+        first = trunc(n / :math.pow(10, div(length(to_charlist(n)), 2)))
         last  = :math.sqrt(n) |> round
         for i <- first .. last, rem(n, i) == 0, do: {i, div(n, i)}
     end
-        
+    
     def vampire_factors(n) do
-        if rem(length(to_char_list(n)), 2) == 1 do
+        if rem(length(to_charlist(n)), 2) == 1 do
             []
         else
-            half = div(length(to_char_list(n)), 2)
+            half = div(length(to_charlist(n)), 2)
             sorted = Enum.sort(String.codepoints("#{n}"))
             Enum.filter(factor_pairs(n), fn {a, b} ->
-            length(to_char_list(a)) == half && length(to_char_list(b)) == half &&
+            length(to_charlist(a)) == half && length(to_charlist(b)) == half &&
             Enum.count([a, b], fn x -> rem(x, 10) == 0 end) != 2 &&
             Enum.sort(String.codepoints("#{a}#{b}")) == sorted
             end)
@@ -20,14 +20,18 @@ defmodule VamNum do
        end
 
     def vampireNum(boss, low, high) do
-        Enum.reduce_while(Stream.iterate(low, &(&1+1)), low, fn n, acc ->
-            case vampire_factors(n) do
-                [] -> {:cont, acc}
-                vf -> IO.puts "#{n}:\t#{inspect vf}"
-            #   vf -> send boss, {:found, n, inspect vf}
-                if n < high, do: {:cont, acc+1}, else: {:halt, acc}
-            end
-          end)
+        Enum.each(low..high, fn(n) -> 
+            ans = vampire_factors(n)
+            if length(ans) > 0 do send boss, {:found, n, ans} end
+        end)
+        # Enum.reduce_while(low..high, low, fn n, acc ->
+        #     case vampire_factors(n) do
+        #         [] -> {:cont, acc}
+        #         vf -> IO.puts "#{n}:\t#{inspect vf}"
+        #     #   vf -> send boss, {:found, n, inspect vf}
+        #         if n < high, do: {:cont, acc+1}, else: {:halt, acc}
+        #     end
+        #   end)
 
         # for m <- 100..999, do:
         # (
