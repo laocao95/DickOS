@@ -1,28 +1,26 @@
 defmodule VamNum do
-    def factor_pairs(n) do
-        first = trunc(n / :math.pow(10, div(length(to_charlist(n)), 2)))
-        last  = :math.sqrt(n) |> round
-        for i <- first .. last, rem(n, i) == 0, do: {i, div(n, i)}
+    def findFactors(n) do
+        half = div(length(to_charlist(n)), 2)
+        sorted = Enum.sort(String.codepoints("#{n}"))
+        Enum.filter(pairs(n), fn {a, b} -> length(to_charlist(a)) == half && length(to_charlist(b)) == half && Enum.count([a, b], fn x -> rem(x, 10) == 0 end) != 2
+            && Enum.sort(String.codepoints("#{a}#{b}")) == sorted end)
     end
-    
-    def vampire_factors(n) do
-        if rem(length(to_charlist(n)), 2) == 1 do
-            []
-        else
-            half = div(length(to_charlist(n)), 2)
-            sorted = Enum.sort(String.codepoints("#{n}"))
-            Enum.filter(factor_pairs(n), fn {a, b} ->
-            length(to_charlist(a)) == half && length(to_charlist(b)) == half &&
-            Enum.count([a, b], fn x -> rem(x, 10) == 0 end) != 2 &&
-            Enum.sort(String.codepoints("#{a}#{b}")) == sorted
-            end)
-        end
-       end
+
+    def pairs(n) do
+        start_factor = trunc(n / :math.pow(10, div(length(to_charlist(n)), 2)))
+        end_factor  = :math.sqrt(n) |> round
+        for i <- start_factor .. end_factor, rem(n, i) == 0, do:
+            {i, div(n, i)}
+    end
 
     def vampireNum(boss, low, high) do
-        Enum.each(low..high, fn(n) -> 
-            ans = vampire_factors(n)
-            if length(ans) > 0 do send boss, {:found, n, ans} end
+        low..high |>
+        Enum.filter(fn n -> rem(length(to_charlist(n)), 2) == 0 end) |>
+        Enum.each(fn n -> 
+            ans = findFactors(n)
+            if length(ans) > 0 do 
+                send boss, {:found, n, ans}
+            end
         end)
         # Enum.reduce_while(low..high, low, fn n, acc ->
         #     case vampire_factors(n) do
