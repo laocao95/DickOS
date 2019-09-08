@@ -7,7 +7,12 @@ end_num = String.to_integer(Enum.at(System.argv, 1))
 
 chunk = div(end_num - start_num, core_count)
 
-{real_time, {cpu_time, result}} = :timer.tc(fn -> Boss.start(start_num, end_num, core_count, chunk) end)
+{:ok, genpid} = GenServer.start_link(FangsReceiver, %{})
+
+{real_time, {cpu_time, result}} = :timer.tc(fn -> Boss.start(genpid, start_num, end_num, core_count, chunk) end)
+
+
+#start genserver
 
 for {k, v} <- result do
     IO.write(k)
@@ -17,6 +22,6 @@ for {k, v} <- result do
     IO.write("\n")
 end
 
-IO.puts("cpu time " <> Integer.to_string(cpu_time))
-IO.puts("real time " <> Integer.to_string(real_time))
-IO.puts("ratio " <> ( (cpu_time / real_time) |> Float.floor(3) |> Float.to_string()))
+# IO.puts("cpu time " <> Integer.to_string(cpu_time))
+# IO.puts("real time " <> Integer.to_string(real_time))
+# IO.puts("ratio " <> ( (cpu_time / real_time) |> Float.floor(3) |> Float.to_string()))
