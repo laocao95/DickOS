@@ -13,14 +13,14 @@ defmodule VamNum do
             {i, div(n, i)}
     end
 
-    def vampireNum(genpid, low, high) do
+    def vampireNum(boss, low, high) do
         low..high |>
         Enum.filter(fn n -> rem(length(to_charlist(n)), 2) == 0 end) |>
         Enum.each(fn n -> 
             ans = findFactors(n)
             if length(ans) > 0 do 
                 #send boss, {:found, n, ans}
-                GenServer.call(genpid, {:found, n, ans}, 50)
+                GenServer.call(boss, {:found, n, ans}, 50)
             end
         end)
         # Enum.reduce_while(low..high, low, fn n, acc ->
