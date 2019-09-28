@@ -109,7 +109,7 @@ defmodule Topology do
             groupIndex = levelIndex - numPerGroup * (groupNum - 1)
 
             next =                                               # next one in same level
-            if num == levelEnd && do
+            if num == levelEnd  do
                 [levelStart + 1]
             else
                 [num + 1]
