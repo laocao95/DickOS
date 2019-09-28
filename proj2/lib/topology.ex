@@ -97,19 +97,20 @@ defmodule Topology do
     end
 
     def honeyComb(numNodes) do
-        numCeil = trunc(6 * :math.pow(ceil(:math.pow(numNodes / 6, 1 / 2)), 2)) # rounded node number
+        outLevel = ceil(:math.pow(numNodes / 6, 1 / 2))
+        numCeil = 6 * outLevel * outLevel # rounded node number
         neighborList = 
         for num <- 1..numCeil do
-            level = floor(:math.pow(num / 6, 1 / 2))
+            level = floor(:math.pow((num - 1) / 6, 1 / 2))
             levelIndex = num - 6 * level * level                 # the index of num in this level
             levelEnd = 6 * (level + 1) * (level + 1)            # the index of the last element in the level
             levelStart = 6 * level * level                      # the index of the last element in last level
             numPerGroup = 2 * (level + 1) - 1
             groupNum = ceil(levelIndex / numPerGroup)
             groupIndex = levelIndex - numPerGroup * (groupNum - 1)
-
+            
             next =                                               # next one in same level
-            if num == levelEnd  do
+            if num == levelEnd do
                 [levelStart + 1]
             else
                 [num + 1]
@@ -124,9 +125,13 @@ defmodule Topology do
 
             between = 
             if rem(groupIndex, 2) != 0 do
-                [getHoney(level + 2, groupNum, groupIndex + 1)]
+                if level + 1 == outLevel do               # num in the outest level
+                    []
+                else
+                    [getHoney(level + 2, groupNum, groupIndex + 1)]     # outside
+                end
             else
-                [getHoney(level, groupNum, groupIndex - 1)]
+                [getHoney(level, groupNum, groupIndex - 1)]         # inside
             end
 
             neighborList = [next] ++ [last] ++ [between]
