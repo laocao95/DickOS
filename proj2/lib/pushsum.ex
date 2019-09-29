@@ -12,8 +12,8 @@ defmodule PushServer do
         finishNum = 0
         w = 1
         round = 0
-        startSend = 0
-        peerListPair = Enum.map(1..numNodes, fn s -> GenServer.start_link(PushActor, {self(), s, w, round, startSend}) end)
+        timerRef = :nil
+        peerListPair = Enum.map(1..numNodes, fn s -> GenServer.start_link(PushActor, {self(), s, w, round, timerRef}) end)
 
         #map to id to pid
         neighborListPID = Enum.map(1..numNodes, fn index ->
@@ -35,7 +35,7 @@ defmodule PushServer do
 
         startTime = System.monotonic_time(:millisecond)
 
-        GenServer.cast(elem(Enum.at(peerListPair, randomId - 1), 1), {:send})
+        GenServer.cast(elem(Enum.at(peerListPair, randomId - 1), 1), {:startTimer})
 
         #start monitor
         Enum.map(peerListPair, fn pair -> Process.monitor(elem(pair, 1)) end)
@@ -63,13 +63,13 @@ defmodule PushActor do
     end
 
     def handle_cast({:neighbor, neighborListPID}, state) do
-        {bossid, s, w, round, startSend} = state
-        {:noreply, {bossid, s, w, round, startSend, neighborListPID}}
+        {bossid, s, w, round, timerRef} = state
+        {:noreply, {bossid, s, w, round, timerRef, neighborListPID}}
     end
 
     def handle_cast({:message, inputS, inputW}, state) do
         # IO.puts(rumor)
-        {bossid, s, w, round, startSend, neighborListPID} = state
+        {bossid, s, w, round, timerRef, neighborListPID} = state
         oldRatio = s / w
         newS = inputS + s
         newW = inputW + w
@@ -89,31 +89,40 @@ defmodule PushActor do
 
         if round >= 3 do
             IO.puts("finish")
+            :timer.cancel(timerRef)
             Process.exit(self(),:normal)
-        else
-            if startSend == 0 do
-                GenServer.cast(self(), {:send})
-            end
         end
-        startSend = 1
-        {:noreply, {bossid, newS, newW, round, startSend, neighborListPID}}
+        
+        timerRef = cond do
+            timerRef == :nil ->
+                {:ok, timerRef} = :timer.send_interval(20, self(), {:send})
+                timerRef
+            true ->
+                timerRef
+        end
+        {:noreply, {bossid, newS, newW, round, timerRef, neighborListPID}}
         
     end
 
-    def handle_cast({:send}, state) do
-        {bossid, s, w, round, startSend, neighborListPID} = state
-        startSend = 1
+    def handle_cast({:startTimer}, state) do
+        {bossid, s, w, round, timerRef, neighborListPID} = state
+        {:ok, timerRef} = :timer.send_interval(20, self(), {:send})
+        {:noreply, {bossid, s, w, round, timerRef, neighborListPID}}
+    end
+
+    def handle_info({:send}, state) do
+        {bossid, s, w, round, timerRef, neighborListPID} = state
+                
         {randomPID, newNeighborListPID} = selectRandomNeighbor(neighborListPID)
 
         if length(newNeighborListPID) > 0 do
             GenServer.cast(randomPID, {:message, s / 2, w / 2})
-            GenServer.cast(self(), {:send})
-            Process.sleep(20)
         else
             IO.puts("finish")
+            :timer.cancel(timerRef)
             Process.exit(self(),:normal)
         end
-        {:noreply,{bossid, s / 2, w / 2, round, startSend, newNeighborListPID}}
+        {:noreply,{bossid, s / 2, w / 2, round, timerRef, newNeighborListPID}}
     end
 
 
