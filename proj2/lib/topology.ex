@@ -134,9 +134,43 @@ defmodule Topology do
                 [getHoney(level, groupNum, groupIndex - 1)]         # inside
             end
 
-            neighborList = [next] ++ [last] ++ [between]
+            neighborList = next ++ last ++ between
         end
     end
+
+    # def randHoneyComb(numNodes) do
+    #     neighborList = honeyComb(numNodes)
+    #     map = %{}                                   # map of flag
+    #     neighborList = recurRand(numNodes, 1, map, neighborList)
+    # end
+
+    # def recurRand(numNodes, num, map, neighborList) when num < numNodes do
+    #     if Map.has_key?(map, num) do
+    #         neighbor = Map.fetch(map, num)
+    #         neighborList =  [Enum.at(neighborList, num) ++ neighbor] ++ recurRand(numNodes, num, map, neighborList)     # link randomNei with 3neighbor then linked with neighborList
+    #     else
+    #         nodeList = 1..numNodes                  # choose one random neighbor from this list(delete 2 neighbors)
+    #         alreadyPaired = mapToList(map)
+    #         nodeList = nodeList -- [Enum.at(Enum.at(neighborList, num), 0), Enum.at(Enum.at(neighborList, num), 1), Enum.at(Enum.at(neighborList, num), 2)]
+    #         neighbor = Enum.random(nodeList)
+    #         mapTemp = %{neighbor: num}              # prepare for the neighbor to get back to num(the neighbor of the num's neighbor is itself)
+    #         map = merge(map, mapTemp)
+    #         neighborList =  [Enum.at(neighborList, num) ++ neighbor] ++ recurRand(numNodes, num, map, neighborList)
+    #     end
+    # end
+
+    # def mapToList(map) do
+    #     list = []
+    #     recurHelp(Map.to_list(map), 0)
+    # end
+
+    # def recurHelp(tupleList, i) do
+    #     if i == length(tupleList) do
+    #         []
+    #     else
+    #         Enum.at(tupleList, i)
+    #     end
+    # end
 
     def getNeighbor(numNodes, topology) do
         cond do
@@ -150,6 +184,8 @@ defmodule Topology do
                 Topology.torus3D(numNodes)
             topology == "honeycomb" ->
                 Topology.honeyComb(numNodes)
+            # topology == "randhoneycomb" ->
+            #     Topology.randHoneyComb(numNodes)
         end
     end
 
