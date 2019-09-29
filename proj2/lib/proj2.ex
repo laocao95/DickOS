@@ -1,18 +1,40 @@
-defmodule Proj2 do
-  @moduledoc """
-  Documentation for Proj2.
-  """
+defmodule Proj2.CLI do
+  def main(args \\ []) do
+      args
+      |> parse_args
+  end
 
-  @doc """
-  Hello world.
+  defp parse_args(args) do
+      {opts, args, _} =
+        args
+        |> OptionParser.parse(strict: [:string])
+      
+      numNodes = Enum.at(args, 0) |> String.to_integer()
+      topology = Enum.at(args, 1)
+      algorithm = Enum.at(args, 2)
 
-  ## Examples
+      start(numNodes, topology, algorithm)
+  end
 
-      iex> Proj2.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def start(numNodes, topology, algorithm) do
+      {:ok, serverpid} = cond do
+          algorithm == "gossip" ->
+              GenServer.start_link(GossipServer, {})
+          algorithm == "push-sum" ->
+              GenServer.start_link(PushServer, {})
+          true ->
+              IO.puts("error input")
+              Process.exit(self(), :normal)
+      end
+      
+      GenServer.cast(serverpid, {:start, numNodes, topology})
+      
+      checkAlive(serverpid)
+  end
+  
+  def checkAlive(pid) do
+      if Process.alive?(pid) == true do
+          checkAlive(pid)
+      end
   end
 end

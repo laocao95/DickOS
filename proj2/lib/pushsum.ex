@@ -1,4 +1,4 @@
-defmodule GossipServer do
+defmodule PushServer do
     use GenServer
 
     def init(state) do
@@ -9,13 +9,11 @@ defmodule GossipServer do
         neighbourListID = Topology.getNeighbor(numNodes, topology)
         # may need to round up
         numNodes = length(neighbourListID)
-        
-        IO.inspect(neighbourListID)
-        
         finishNum = 0
-        receiveCount = 0
+        w = 1
+        round = 0
         startSend = 0
-        peerListPair = Enum.map(1..numNodes, fn index -> GenServer.start_link(GossipActor, {self(), receiveCount, startSend}) end)
+        peerListPair = Enum.map(1..numNodes, fn s -> GenServer.start_link(PushActor, {self(), s, w, round, startSend}) end)
 
         #map to id to pid
         neighborListPID = Enum.map(1..numNodes, fn index ->
@@ -27,7 +25,7 @@ defmodule GossipServer do
         end
         )
 
-        
+        IO.inspect(neighbourListID)
 
         # # send neighbourPID
         Enum.map(1..numNodes, fn index -> GenServer.cast(elem(Enum.at(peerListPair, index - 1), 1), {:neighbor, Enum.at(neighborListPID, index - 1)}) end)
@@ -37,7 +35,7 @@ defmodule GossipServer do
 
         startTime = System.monotonic_time(:millisecond)
 
-        GenServer.cast(elem(Enum.at(peerListPair, randomId - 1), 1), {:rumor, "This is a rumor"})
+        GenServer.cast(elem(Enum.at(peerListPair, randomId - 1), 1), {:send})
 
         #start monitor
         Enum.map(peerListPair, fn pair -> Process.monitor(elem(pair, 1)) end)
@@ -57,7 +55,7 @@ defmodule GossipServer do
     end
 end
 
-defmodule GossipActor do
+defmodule PushActor do
     use GenServer
 
     def init(state) do
@@ -65,42 +63,57 @@ defmodule GossipActor do
     end
 
     def handle_cast({:neighbor, neighborListPID}, state) do
-        {bossid, receiveCount, startSend} = state
-        {:noreply, {bossid, receiveCount, startSend, neighborListPID}}
+        {bossid, s, w, round, startSend} = state
+        {:noreply, {bossid, s, w, round, startSend, neighborListPID}}
     end
 
-    def handle_cast({:rumor, rumor}, state) do
+    def handle_cast({:message, inputS, inputW}, state) do
         # IO.puts(rumor)
-        {bossid, receiveCount, startSend, neighborListPID} = state
-        receiveCount = receiveCount + 1;
-        
-        if receiveCount >= 10 do
+        {bossid, s, w, round, startSend, neighborListPID} = state
+        oldRatio = s / w
+        newS = inputS + s
+        newW = inputW + w
+        newRatio = newS / newW
+
+        # testOutPut = [newS, newW, newRatio]
+        # IO.inspect(self())
+        # IO.inspect(testOutPut)
+
+        round = cond do
+            abs(newRatio - oldRatio) <= :math.pow(10,-10) ->
+                round + 1
+            true ->
+                0
+        end
+        # IO.puts(round)
+
+        if round >= 3 do
             IO.puts("finish")
             Process.exit(self(),:normal)
         else
             if startSend == 0 do
-                GenServer.cast(self(), {:send, rumor})
+                GenServer.cast(self(), {:send})
             end
         end
         startSend = 1
-        {:noreply, {bossid, receiveCount, startSend, neighborListPID}}
+        {:noreply, {bossid, newS, newW, round, startSend, neighborListPID}}
         
     end
 
-    def handle_cast({:send, rumor}, state) do
-        {bossid, receiveCount, startSend, neighborListPID} = state
-
+    def handle_cast({:send}, state) do
+        {bossid, s, w, round, startSend, neighborListPID} = state
+        startSend = 1
         {randomPID, newNeighborListPID} = selectRandomNeighbor(neighborListPID)
 
         if length(newNeighborListPID) > 0 do
-            GenServer.cast(randomPID, {:rumor, rumor})
-            GenServer.cast(self(), {:send, rumor})
-            Process.sleep(100)
+            GenServer.cast(randomPID, {:message, s / 2, w / 2})
+            GenServer.cast(self(), {:send})
+            Process.sleep(20)
         else
             IO.puts("finish")
             Process.exit(self(),:normal)
         end
-        {:noreply,{bossid, receiveCount, startSend, newNeighborListPID}}
+        {:noreply,{bossid, s / 2, w / 2, round, startSend, newNeighborListPID}}
     end
 
 
@@ -121,4 +134,5 @@ defmodule GossipActor do
         end
 
     end
+
 end

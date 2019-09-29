@@ -15,9 +15,16 @@ algorithm = Enum.at(System.argv, 2)
 
 # GossipServer.start(numNodes, topology)
 
-{:ok, gossipServerpid} = GenServer.start_link(GossipServer, {})
+{:ok, serverpid} = cond do
+    algorithm == "gossip" ->
+        GenServer.start_link(GossipServer, {})
+    algorithm == "push-sum" ->
+        GenServer.start_link(PushServer, {})
+    true ->
+        IO.puts("error input")
+        Process.exit(self(), :normal)
+end
 
-GenServer.cast(gossipServerpid, {:start, numNodes, topology})
+GenServer.cast(serverpid, {:start, numNodes, topology})
 
-MyTimer.checkAlive(gossipServerpid)
-
+MyTimer.checkAlive(serverpid)
