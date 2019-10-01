@@ -140,7 +140,8 @@ defmodule Topology do
 
     def randHoneyComb(numNodes) do
         neighborList = honeyComb(numNodes)
-        newList = recurRand(numNodes, 1, %{}, neighborList, Enum.to_list(1..numNodes))    # %{}: map of flag
+        len = length(neighborList)
+        newList = recurRand(len, 1, %{}, neighborList, Enum.to_list(1..len))    # %{}: map of flag
         # !@!#!#!#!$!$
     end
 
@@ -191,11 +192,6 @@ defmodule Topology do
             if i + 1 < length(tupleList) do
                 list = list ++ recurHelp(tupleList, i + 1)
             end
-            
-            # list = Enum.reject(list, & &1 == [])
-            # list = List.delete(list, |nil)
-            # list = Enum.filter(list, & !is_nil(&1))
-            # list = Enum.reject(list, &is_nil/1)
         end
     end
 
