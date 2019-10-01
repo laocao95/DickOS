@@ -142,7 +142,6 @@ defmodule Topology do
         neighborList = honeyComb(numNodes)
         len = length(neighborList)
         newList = recurRand(len, 1, %{}, neighborList, Enum.to_list(1..len))    # %{}: map of flag
-        # !@!#!#!#!$!$
     end
 
     def recurRand(numNodes, num, map, neighborList, candidat) do
@@ -150,48 +149,21 @@ defmodule Topology do
             if Map.has_key?(map, num) do
                 neighbor = elem(Map.fetch(map, num), 1)
                 neighborWithRan = Enum.at(neighborList, num - 1) ++ [neighbor]
-                # IO.puts("neighborWithRan")
-                # IO.inspect(neighborWithRan)
                 newList = [neighborWithRan] ++ recurRand(numNodes, num + 1, map, neighborList, candidat)      # link randomNei with 3neighbor then linked with neighborList
             else
                 candidatThis = candidat -- [num]
-                # IO.puts("delete itself")
-                # IO.inspect(candidatThis)
                 candidatThis = candidatThis -- Enum.at(neighborList, num - 1)
-                # IO.puts("delete neighbor")
-                # IO.inspect(candidatThis) 
-                # IO.puts("delete map")
-                # IO.inspect(candidatThis)
                 neighbor = Enum.at(Enum.take_random(candidatThis, 1),0)
-                # IO.puts("random Neigh")
-                # IO.inspect(neighbor)
                 mapTemp = %{neighbor => num}              # prepare for the neighbor to get back to num(the neighbor of the num's neighbor is itself)
                 map = Map.merge(map, mapTemp)
                 candidat = candidat -- [neighbor]
                 candidat = candidat -- [num]
                 thisList = Enum.at(neighborList, num - 1) ++ [neighbor]
                 thisList = Enum.reject(thisList, &is_nil/1)
-                # IO.puts("this list")
-                # IO.inspect(thisList)
                 newList = [thisList] ++ recurRand(numNodes, num + 1, map, neighborList, candidat)
             end
         else
             []
-        end
-    end
-
-    def mapToList(map, num) do
-        if num > 1 do
-            list = recurHelp(Map.to_list(map), 0)
-        end
-    end
-
-    def recurHelp(tupleList, i) do
-        if i < length(tupleList) do
-            list = [elem(Enum.at(tupleList, i), 0)] ++ [elem(Enum.at(tupleList, i), 1)]
-            if i + 1 < length(tupleList) do
-                list = list ++ recurHelp(tupleList, i + 1)
-            end
         end
     end
 
