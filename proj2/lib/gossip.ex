@@ -11,7 +11,7 @@ defmodule GossipServer do
         numNodes = length(neighbourListID)
         
         IO.inspect(neighbourListID)
-        
+
         finishNum = 0
         receiveCount = 0
         startSend = 0
@@ -26,8 +26,6 @@ defmodule GossipServer do
             )
         end
         )
-
-        
 
         # # send neighbourPID
         Enum.map(1..numNodes, fn index -> GenServer.cast(elem(Enum.at(peerListPair, index - 1), 1), {:neighbor, Enum.at(neighborListPID, index - 1)}) end)
