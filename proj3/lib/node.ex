@@ -208,7 +208,11 @@ defmodule Actor do
 
     def handle_call({:getNeighbor, level}, _from, state) do
         {coordinateX, coordinateY, nodeId, neighborTable, objectLocation} = state
-        levelNeighborList = Enum.at(neighborTable, level - 1)
+        levelNeighborList = if level > 0 do
+            Enum.at(neighborTable, level - 1)
+        else
+            []
+        end
         {:reply, levelNeighborList, state}
     end
 
@@ -317,26 +321,20 @@ defmodule Func do
     end
 
     def acknowledgedMulticast(prefix, nodeId, nodePID, surrogateId, surrogatePID) do
-        IO.puts("acknowledge loop")
-        return_pattern = if surrogatePID != self() do
-            GenServer.call(surrogatePID, {:acknowledged, prefix})
-        else
-            {:end}
-        end
+        # IO.puts("acknowledge loop")
+        return_pattern = GenServer.call(surrogatePID, {:acknowledged, prefix})
         
         # IO.inspect(return_pattern)
         len = String.length(prefix)
         # IO.puts(len)
         case return_pattern do
-            {:end} ->
-                []
             {:only, neighborList} ->
                 #recursive bottom
                 [{neighborId, neighborPID}] = neighborList
-                GenServer.call(neighborPID, {:newNode, nodeId, nodePID})
+                # GenServer.call(neighborPID, {:newNode, nodeId, nodePID})
                 neighborList
             {:notonly, neighborList} ->
-                newNeighborList = Enum.map(neighborList, fn {surrogateId, surrogatePID} -> 
+                newNeighborList = Enum.map(neighborList, fn {surrogateId, surrogatePID} ->
                     newprefix = String.slice(surrogateId, 0..len)
                     acknowledgedMulticast(newprefix, nodeId, nodePID, surrogateId, surrogatePID)
                 end)
@@ -348,16 +346,11 @@ defmodule Func do
         alpha = Func.greatestCommonPrefix(myId, prefix, 0)
         startIndex = String.length(alpha)
         neighborTable |> Enum.slice(startIndex..-1) |> List.flatten()
-        # List.flatten(neighborList)
-        # neighborList = Enum.slice(neighborList, startIndex..-1) |> Enum.filter(fn x -> length(x) > 0 end) #filter the empty level
 
-        # neighborList = for n <- 0..length(neighborList)-1, do:
-        #     levelList = Enum.at(neighborList, n) |> Enum.filter(fn x -> length(x) > 0 end)
-        # end #filter the empty slot
     end
 
     def getNextListLoop(resTable, elementList, level, nodeId, nodePID) do
-        IO.puts("next list loop")
+        # IO.puts("next list loop")
         #keepClosestK and put into slot
         # IO.puts("enter nextListLoop")
         # IO.puts(level)
@@ -375,7 +368,7 @@ defmodule Func do
 
     def getNextList(levelNeighborList, level, nodeId, nodePID) do
 
-        if level > 0 do
+        if level >= 0 do
             # IO.puts("enter1")
             newList = Enum.map(levelNeighborList, fn {neighborId, neighborPID} -> 
                 sublist = GenServer.call(neighborPID, {:getNeighbor, level}) #get sublist
