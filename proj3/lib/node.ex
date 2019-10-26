@@ -27,13 +27,6 @@ defmodule StartServer do
 
         if length(notFinishPairList) == 0 do
             GenServer.cast(self(), {:publish})
-            #table test
-            # Enum.map(finishPairList, fn {nodeId, nodePID} ->
-            #     table = GenServer.call(nodePID, {:getNeighborTable})
-            #     IO.puts(nodeId)
-            #     IO.inspect(table)
-            # end)
-            # Process.exit(self(),:normal)
             {:noreply, state}
         else
             [actorPIDPair | notFinishPairList] = notFinishPairList  
@@ -58,14 +51,6 @@ defmodule StartServer do
 
     def handle_cast({:request_process, objectId}, state) do
         {numNodes, numRequests, notFinishPairList, finishPairList, successCount, failCount, maxHop} = state
-        # Enum.map(finishPairList, fn {nodeId, nodePID} ->
-        #     table = GenServer.call(nodePID, {:getNeighborTable})
-        #     storage = GenServer.call(nodePID, {:getStorage})
-        #     IO.puts(nodeId)
-        #     IO.inspect(storage)
-        #     IO.inspect(table)
-        # end)
-
         Func.startTimer(finishPairList, numRequests, objectId, 0)
         # Process.exit(self(),:normal)
         {:noreply, state}
@@ -73,21 +58,25 @@ defmodule StartServer do
 
     def handle_cast({:result, res, hop}, state) do
         {numNodes, numRequests, notFinishPairList, finishPairList, successCount, failCount, maxHop} = state
-        maxHop = max(hop, maxHop)
+        # maxHop = max(hop, maxHop)
+
+        maxHop = if res == :success do
+            max(maxHop, hop)
+        else
+            maxHop
+        end
         successCount = if res == :success do
-            IO.puts("success, hop " <> Integer.to_string(hop))
             successCount + 1
         else
             successCount
         end
         failCount = if res == :fail do
-            IO.puts("fail, hop " <> Integer.to_string(hop))
             failCount + 1
         else
             failCount
         end
         if successCount + failCount == numRequests * length(finishPairList) do
-            IO.puts(maxHop)
+            IO.puts("maxhop " <> Integer.to_string(maxHop))
             Process.exit(self(), :normal)
         end
         {:noreply, {numNodes, numRequests, notFinishPairList, finishPairList, successCount, failCount, maxHop}}
@@ -110,7 +99,6 @@ defmodule Actor do
         if  objectLocation != :null do
             #find the object
             GenServer.cast(mainPID, {:result, :success, hop})
-            IO.inspect(mainPID)
             {:noreply, state}
         else
             #find the nexthop
@@ -248,9 +236,7 @@ end
 
 defmodule Func do
     def startTimer(finishPairList, numsRequest, objectId, count) do
-        IO.puts("enter timer")
         if count < numsRequest do
-            IO.puts("timer end")
             Enum.map(finishPairList, fn {nodeId, nodePID} ->
                 GenServer.cast(nodePID, {:request, objectId, 1, 0, self()}) #start search from level 1, hop 0
             end)
@@ -302,8 +288,7 @@ defmodule Func do
         else
             []
         end
-        #IO.inspect(neighborTable)
-
+        
         if length(maxLevelList) > 0 do
             neighborTable = Func.getNextListLoop(neighborTable, maxLevelList, maxLevel, nodeId, nodePID)
             if length(neighborTable) < 10 do
@@ -334,6 +319,7 @@ defmodule Func do
                 # GenServer.call(neighborPID, {:newNode, nodeId, nodePID})
                 neighborList
             {:notonly, neighborList} ->
+                neighborList = neighborList |> Func.getClosestK()
                 newNeighborList = Enum.map(neighborList, fn {surrogateId, surrogatePID} ->
                     newprefix = String.slice(surrogateId, 0..len)
                     acknowledgedMulticast(newprefix, nodeId, nodePID, surrogateId, surrogatePID)
@@ -350,10 +336,6 @@ defmodule Func do
     end
 
     def getNextListLoop(resTable, elementList, level, nodeId, nodePID) do
-        # IO.puts("next list loop")
-        #keepClosestK and put into slot
-        # IO.puts("enter nextListLoop")
-        # IO.puts(level)
         initialLevelTable = Enum.map(0..15, fn i -> [] end)
         levelTable = Func.putElementIntoSlot(initialLevelTable, elementList, level - 1)
         resTable = resTable ++ [levelTable]
@@ -367,9 +349,7 @@ defmodule Func do
     end
 
     def getNextList(levelNeighborList, level, nodeId, nodePID) do
-
         if level >= 0 do
-            # IO.puts("enter1")
             newList = Enum.map(levelNeighborList, fn {neighborId, neighborPID} -> 
                 sublist = GenServer.call(neighborPID, {:getNeighbor, level}) #get sublist
                 #notify these neighbor
@@ -379,7 +359,6 @@ defmodule Func do
             end)
             newList |> List.flatten() |> Enum.uniq()
         else
-            # IO.puts("enter12")
             []
         end
     end
@@ -396,6 +375,11 @@ defmodule Func do
             Func.updateListByIndex(levelNeighborList, slotIndex, Enum.at(levelNeighborList, slotIndex) ++ [{newNodeId, newNodePID}] |> Enum.uniq())
         end
 
+    end
+
+    def getClosestK(neighborList) do
+        #get closetK, temporarily slice
+        neighborList |> Enum.slice(0..6)
     end
 
     #valid
