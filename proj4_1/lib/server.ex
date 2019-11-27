@@ -45,28 +45,39 @@ defmodule Server do
         {:reply, clientPID, state}
     end
 
+    def handle_call({:delete, name}, _from, state) do
+        [{_, pid}] = :ets.lookup(:namePID, name)
+        :ets.delete(:namePID, name)
+        :ets.delete(:nameSubscribers, name)
+        :ets.delete(:nameFollowers, name)
+        :ets.delete(:nameTweets, name)
+        {:reply, state, state}
+    end
+
     #subscribe handler
     def handle_call({:subscribe, name, subscribeToName}, _from, state) do
 
         #update subscribers
-        if name != subscribeToName do
-            [{_, subscribeToPID}] = :ets.lookup(:namePID, subscribeToName)
-            
-            [{_, subscribers}] = :ets.lookup(:nameSubscribers, name)
-
-            subscribers = subscribers ++ [{subscribeToName, subscribeToPID}]
-
-            # IO.inspect(subscribers)
-
-            :ets.insert(:nameSubscribers, {name, subscribers})
-
-            #update followers
-            [{_, followers}] = :ets.lookup(:nameFollowers, subscribeToName)
-            followers = followers ++ [{name, elem(_from, 0)}]
-
-            # IO.inspect(followers)
-
-            :ets.insert(:nameFollowers, {subscribeToName, followers})
+        if :ets.member(:namePID, subscribeToName) == true do
+            if name != subscribeToName do
+                [{_, subscribeToPID}] = :ets.lookup(:namePID, subscribeToName)
+                
+                [{_, subscribers}] = :ets.lookup(:nameSubscribers, name)
+    
+                subscribers = subscribers ++ [{subscribeToName, subscribeToPID}]
+    
+                # IO.inspect(subscribers)
+    
+                :ets.insert(:nameSubscribers, {name, subscribers})
+    
+                #update followers
+                [{_, followers}] = :ets.lookup(:nameFollowers, subscribeToName)
+                followers = followers ++ [{name, elem(_from, 0)}]
+    
+                # IO.inspect(followers)
+    
+                :ets.insert(:nameFollowers, {subscribeToName, followers})
+            end 
         end
         {:reply, state, state}
     end

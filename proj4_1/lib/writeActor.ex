@@ -53,7 +53,9 @@ defmodule WriteActor do
         [{_, followers}] = :ets.lookup(:nameFollowers, name)
         # IO.inspect(followers)
         for {followerName, followerPID} <- followers do
-            GenServer.cast(followerPID, {:tweetUpdate, name, content})
+            if Process.alive?(followerPID) do
+                GenServer.cast(followerPID, {:tweetUpdate, name, content})
+            end
         end
         {:noreply, state}
     end

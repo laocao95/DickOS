@@ -46,4 +46,3 @@ end_time = System.monotonic_time(:millisecond)
 IO.puts("search tweets time: " <> Integer.to_string(end_time - start_time))
 
 # Process.sleep(5000)
-
