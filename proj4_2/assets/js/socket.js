@@ -99,7 +99,6 @@ if (document.getElementById("username_head")) {
 
   subscribeBtn.addEventListener("click", event => {
     if (subscribeInput.value != "") {
-      //TODO: validate online or not
 
       //notify server to subscribe
       serverChannel.push("subscribe", {username: myUserName, subscribeToName: subscribeInput.value})
@@ -157,14 +156,16 @@ if (document.getElementById("username_head")) {
     console.log("register success")
     let messageItem = document.createElement("li")
     messageItem.innerText = "System: Login successfully"
-    messagesContainer.appendChild(messageItem)
+    // messagesContainer.appendChild(messageItem)
+    messagesContainer.prepend(messageItem)
   })
 
   serverChannel.on("subscribe_successfully", payload => {
     console.log("subscribe success")
     let messageItem = document.createElement("li")
     messageItem.innerText = "System: Subscribe successfully"
-    messagesContainer.appendChild(messageItem)
+    // messagesContainer.appendChild(messageItem)
+    messagesContainer.prepend(messageItem)
   })
 
   serverChannel.on("queryHashTagTweet_result", searchResultCallback)
@@ -179,24 +180,54 @@ if (document.getElementById("username_head")) {
     if (tweets.length == 0) {
       let messageItem = document.createElement("li")
       messageItem.innerText = "System: No results"
-      messagesContainer.appendChild(messageItem)
+      // messagesContainer.appendChild(messageItem)
+      messagesContainer.prepend(messageItem)
     } else {
-      tweets.forEach(element => {
-        console.log("enter")
-        
-        let messageItem = document.createElement("li")
+      let tableItem = document.createElement("table")
+      tableItem.style.tableLayout = "fixed"
+      let headerTr = document.createElement("tr")
+      let headerTh1 = document.createElement("th")
+      headerTh1.width = "20%"
+      let headerTh2 = document.createElement("th")
+      headerTh2.width = "50%"
+      let headerTh3 = document.createElement("th")
+      headerTh3.width = "30%"
+      headerTh1.innerText = "Author"
+      headerTh2.innerText = "Content"
+      headerTh3.innerText = "Process"
+      headerTr.appendChild(headerTh1)
+      headerTr.appendChild(headerTh2)
+      headerTr.appendChild(headerTh3)
+      tableItem.appendChild(headerTr)
+      //messagesContainer.appendChild(tableItem)
+      messagesContainer.prepend(tableItem)
+      
+      tweets.reverse().forEach(element => {
+        let headerTr = document.createElement("tr")
+        let headerTh1 = document.createElement("td")
+        headerTh1.style = "word-wrap:break-word;word-break:break-all;"
+        let headerTh2 = document.createElement("td")
+        headerTh2.style = "word-wrap:break-word;word-break:break-all;"
+        let headerTh3 = document.createElement("td")
+        headerTh3.style = "word-wrap:break-word;word-break:break-all;"
+
+        headerTr.appendChild(headerTh1)
+        headerTr.appendChild(headerTh2)
+        headerTr.appendChild(headerTh3)
+        headerTh1.innerText = element["name"]
+        headerTh2.innerText = element["content"]
+
         let buttonItem = document.createElement("button")
         buttonItem.innerText = "retweet"
         buttonItem.id = tweetsList.length + ""
-        tweetsList.push(element)
         buttonItem.onclick = function () {
           let retweetItem = tweetsList[parseInt(this.id)]
           serverChannel.push("retweet", {username: myUserName, content: retweetItem})
           myChannel.push("broadcast_tweet", {username: myUserName, content: retweetItem["content"]})
         }
-        messageItem.innerText = "Author: " + element["name"] + "\nContent: " + element["content"]
-        messageItem.appendChild(buttonItem)
-        messagesContainer.appendChild(messageItem)
+        headerTh3.appendChild(buttonItem)
+        tweetsList.push(element)
+        tableItem.appendChild(headerTr)
       });
     }
   }

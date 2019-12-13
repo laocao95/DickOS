@@ -26,6 +26,4 @@ my name:
 
 <br><br>
 <input id="chat-input" type="text" placeholder="send a new tweet"></input>
-<div id="messages" style="border:1px solid gray; height:200px; overflow-y:scroll;"></div>
-
-
+<div id="messages" style="border:1px solid gray; height:400px; overflow-y:scroll; padding-left:15px;"></div>
