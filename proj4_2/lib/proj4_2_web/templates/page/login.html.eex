@@ -1,0 +1,17 @@
+<!-- <section class="phx-hero"> -->
+  <!-- <h1><%= gettext "Welcome to %{name}!", name: "Phoenix" %></h1> -->
+  <h1>Login / Register</h1>
+  <p>If account exists, you will login directly, or create a new account</p>
+<!-- </section> -->
+
+
+<%= form_for @conn, Routes.page_path(@conn, :tweet), fn f -> %>
+  <div class="form-group">
+    <label>Username</label>
+    <%= text_input f, :username, class: "form-control" %>
+  </div>
+
+  <div class="form-group">
+    <%= submit "Login/Register", class: "btn btn-primary" %>
+  </div>
+<% end %>

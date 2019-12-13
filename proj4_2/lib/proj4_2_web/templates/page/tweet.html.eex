@@ -1,0 +1,31 @@
+<%= form_for @conn, Routes.page_path(@conn, :logout), fn f -> %>
+<%= text_input f, :user_id, value: @username, type: "hidden" %>
+<%= submit "logout", class: "btn btn-primary" %>
+<% end %>
+<h2>
+my name: 
+</h2>
+
+<h3 id="username_head">
+  <%= @username %>
+</h3>
+
+
+<input id="subscribe_input" type="text" placeholder="enter user to subscribe"  class="form-control"></input>
+<button id="subscribe_btn" type="button" class="btn btn-info">subscribe</button>
+
+<br>
+<br>
+<input id="search_input" type="text" placeholder="search hashtag or mention"  class="form-control"></input>
+<button id="search_hashtag_btn" type="button"  class="btn btn-info">search hashtag</button>
+<br><br>
+<button id="search_mention_btn" type="button"  class="btn btn-info">search tweets mention me</button>
+
+
+<button id="search_subscriber_tweet_btn" type="button"  class="btn btn-info">search tweets of my subscribers</button>
+
+<br><br>
+<input id="chat-input" type="text" placeholder="send a new tweet"></input>
+<div id="messages" style="border:1px solid gray; height:200px; overflow-y:scroll;"></div>
+
+
