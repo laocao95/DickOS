@@ -16,9 +16,9 @@ defmodule Proj42Web.Router do
   scope "/", Proj42Web do
     pipe_through :browser
 
-    get "/", PageController, :index
+    # get "/", PageController, :index
 
-    get "/login", PageController, :login
+    get "/", PageController, :login
 
     post "/logout", PageController, :logout
 
