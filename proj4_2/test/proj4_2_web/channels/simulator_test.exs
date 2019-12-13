@@ -8,6 +8,15 @@ defmodule Proj42Web.SimulatorTest do
         GenServer.call(:server, {:register, "user1"})
         GenServer.call(:server, {:register, "user2"})
 
+        numUser = 100
+
+        accountList = Enum.map(1..numUser, fn i -> 
+            name = "user" <> Integer.to_string(i)
+            GenServer.call(:server, {:register, name, self()})
+            name
+          end)
+        
+
         {:ok, socket1} = connect(Proj42Web.UserSocket, %{"user_id" => "user1"}, %{})
         {:ok, _, socket1} = subscribe_and_join(socket1, "room:server:" <> "user1", %{})
         
