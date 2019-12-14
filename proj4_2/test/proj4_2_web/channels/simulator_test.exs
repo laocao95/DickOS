@@ -31,7 +31,6 @@ defmodule Proj42Web.SimulatorTest do
         #each user send a tweets
         Enum.map(userList, fn {name, socket} -> 
             push(socket, "tweet", %{"username" => name, "content" => "testTweet #DOS"})
-            assert_broadcast "my_event", %{"some" => "data"}
         end)
 
         #wait for storage server handle tweet request
